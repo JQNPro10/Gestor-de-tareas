@@ -5,10 +5,60 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Gestor de tarea interactivo" />
     <meta name="author" content="Joaquin Albornoz Bresla" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"
+    />
     <link rel="stylesheet" href="./css/bootstrap.min.css" />
-    <title>Document</title>
+    <link rel="stylesheet" href="./css/style.css" />
+    <title>Gestor de tareas</title>
   </head>
   <body>
+    <main class="my-5">
+      <div class="container text-center">
+        <h2>Gestor de tareas</h2>
+        <!-- Agregar tareas -->
+        <div class="row justify-content-center mt-5">
+          <div class="col-12 col-md-6">
+            <input
+              class="form-control"
+              type="text"
+              id="input"
+              placeholder="Ingrese una tarea"
+            />
+            <button
+              type="submit"
+              class="btn btn-success btn-block mt-3"
+              id="btnAgregar"
+            >
+              Agregar tarea
+            </button>
+
+            <!-- Filtros -->
+            <div class="filtros d-md-flex gap-3 align-items-end">
+              <div class="grupo-filtros mt-3">
+                <label for="filtro-estado">Filtrar por estado:</label>
+                <select id="filtro-estado" class="filtrar-seleccion">
+                  <option value="todas">Todas las tareas</option>
+                  <option value="pendientes">Solo pendientes</option>
+                  <option value="completadas">Solo completadas</option>
+                </select>
+              </div>
+
+              <div class="grupo-filtros mt-3">
+                <label for="ordenar-por">Ordenar por:</label>
+                <select id="ordenar-por" class="filtrar-seleccion">
+                  <option value="fecha">Fecha límite</option>
+                  <option value="prioridad">Prioridad</option>
+                  <option value="creacion">Fecha de creación</option>
+                </select>
+              </div>
+
+            <ul class="list-group mt-3  bg-primary-subtle" id="tareas"></ul>
+          </div>
+        </div>
+      </div>
+    </main>
     <footer class="bg-dark-subtle text-center py-4">
       <p>&copy;Todos los derechos reservados</p>
     </footer>
