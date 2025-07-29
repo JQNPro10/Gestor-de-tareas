@@ -16,7 +16,7 @@
   <body>
     <main class="my-5">
       <div class="container text-center">
-        <h2>Gestor de tareas</h2>
+        <h1>Gestor de tareas</h1>
         <!-- Agregar tareas -->
         <div class="row justify-content-center mt-5">
           <div class="col-12 col-md-6">
@@ -35,27 +35,19 @@
             </button>
 
             <!-- Filtros -->
-            <div class="filtros d-md-flex gap-3 align-items-end">
+            <div class="filtros d-md-flex gap-3 mt-4 align-items-end">
               <div class="grupo-filtros mt-3">
                 <label for="filtro-estado">Filtrar por estado:</label>
                 <select id="filtro-estado" class="filtrar-seleccion">
                   <option value="todas">Todas las tareas</option>
+                  <option value="creadas">Solo creadas</option>
                   <option value="pendientes">Solo pendientes</option>
                   <option value="completadas">Solo completadas</option>
                 </select>
               </div>
-
-              <div class="grupo-filtros mt-3">
-                <label for="ordenar-por">Ordenar por:</label>
-                <select id="ordenar-por" class="filtrar-seleccion">
-                  <option value="fecha">Fecha límite</option>
-                  <option value="prioridad">Prioridad</option>
-                  <option value="creacion">Fecha de creación</option>
-                </select>
-              </div>
-
-            <ul class="list-group mt-3  bg-primary-subtle" id="tareas"></ul>
+            </div>
           </div>
+          <div class="row mt-3" id="tareas"></div>
         </div>
       </div>
     </main>
