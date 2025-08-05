@@ -1,110 +1,165 @@
 import { Tarea } from './tarea.js';
 
-const inputTarea = document.getElementById("input");
-const btnAgregar = document.getElementById("btnAgregar");
+const inputFiltroEstado = document.getElementById("filtro-estado");
 const listaTareas = document.getElementById("tareas");
-const filtroEstado = document.getElementById("filtro-estado");
-let tareas = [];
+const btnAgregar = document.getElementById("btnAgregar");
 
-const cargarTareas = () => {
-    const datos = localStorage.getItem("tareas");
-    tareas = datos
-        ? JSON.parse(datos).map(t => new Tarea(t.texto, t.id, t.estado, t.creado, t.modificado))
-        : [];
-};
+const modalVer = new bootstrap.Modal(document.getElementById("modalVerTarea"));
+const modalEditar = new bootstrap.Modal(document.getElementById("modalEditarTarea"));
 
+const verTitulo = document.getElementById("verTitulo");
+const verContenido = document.getElementById("verContenido");
+const verEstado = document.getElementById("verEstado");
+const btnEditarDesdeVer = document.getElementById("btnEditarDesdeVer");
 
-const guardarTareas = () => {
+const editarTitulo = document.getElementById("editarTitulo");
+const editarContenido = document.getElementById("editarContenido");
+const editarEstado = document.getElementById("editarEstado");
+const btnGuardarEdicion = document.getElementById("btnGuardarEdicion");
+
+let tareas = JSON.parse(localStorage.getItem("tareas")) || [];
+let idTareaEnEdicion = null;
+
+function guardarTareas() {
     localStorage.setItem("tareas", JSON.stringify(tareas));
-};
+}
 
-const crearTarea = texto => {
-    const nueva = new Tarea(texto);
-    tareas.push(nueva);
+function aplicarFiltros(array) {
+    const estadoFiltro = inputFiltroEstado?.value || "todas";
+    if (estadoFiltro === "todas") return array;
+    const mapEstados = { creadas: "Creada", pendientes: "En proceso", completadas: "Terminada" };
+    return array.filter(t => t.estado === mapEstados[estadoFiltro]);
+}
+
+function renderizarTareas() {
+    listaTareas.innerHTML = "";
+    const visibles = aplicarFiltros(tareas);
+
+    visibles.forEach(tarea => {
+        const div = document.createElement("div");
+        div.className = "col-md-4";
+
+        div.innerHTML = `
+      <div class="card h-100">
+        <div class="card-body d-flex flex-column justify-content-between">
+          <div>
+            <h5 class="card-title">${tarea.titulo}</h5>
+            <p class="card-subtitle text-muted mb-2">${tarea.estado}</p>
+          </div>
+          <div class="btn-group mt-3">
+            <button class="btn btn-outline-primary btn-sm" data-accion="ver" data-id="${tarea.id}"><i class="bi bi-eye"></i></button>
+            <button class="btn btn-outline-success btn-sm" data-accion="estado" data-id="${tarea.id}"><i class="bi bi-arrow-repeat"></i></button>
+            <button class="btn btn-outline-danger btn-sm" data-accion="eliminar" data-id="${tarea.id}"><i class="bi bi-trash"></i></button>
+          </div>
+        </div>
+      </div>
+    `;
+
+        listaTareas.appendChild(div);
+    });
+}
+
+function cambiarEstado(id) {
+    const tarea = tareas.find(t => t.id === id);
+    if (!tarea) return;
+    const estados = ["Creada", "En proceso", "Terminada"];
+    let idx = estados.indexOf(tarea.estado);
+    idx = (idx + 1) % estados.length;
+    tarea.estado = estados[idx];
+    tarea.modificado = new Date().toISOString();
     guardarTareas();
     renderizarTareas();
-};
+}
 
-const actualizarTarea = (id, cambios) => {
-    tareas = tareas.map(t =>
-        t.id === id
-            ? Object.assign(t, cambios, { modificado: new Date().toISOString() })
-            : t
-    );
-    guardarTareas();
-    renderizarTareas();
-};
-
-const eliminarTarea = id => {
+function eliminarTarea(id) {
     tareas = tareas.filter(t => t.id !== id);
     guardarTareas();
     renderizarTareas();
-};
+}
 
-const aplicarFiltros = array => {
-    let resultado = [...array];
-    const estado = filtroEstado.value;
-    if (estado !== "todas") {
-        const mapEstado = { creadas: "creada", pendientes: "en proceso", completadas: "terminada" };
-        resultado = resultado.filter(t => t.estado === mapEstado[estado]);
-    }
-    return resultado;
-};
+function mostrarTarea(id) {
+    const tarea = tareas.find(t => t.id === id);
+    if (!tarea) return;
 
-const renderizarTareas = () => {
-    listaTareas.innerHTML = '';
-    const visibles = aplicarFiltros(tareas);
-    visibles.forEach(t => {
-        const tareaDiv = document.createElement("div");
-        tareaDiv.className = "col-12 col-sm-6 col-md-4 col-lg-3 mb-3";
+    verTitulo.textContent = tarea.titulo;
+    verContenido.textContent = tarea.contenido;
+    verEstado.textContent = `Estado: ${tarea.estado} · Creada: ${new Date(tarea.creado).toLocaleString()} · Modificada: ${new Date(tarea.modificado).toLocaleString()}`;
 
-        tareaDiv.innerHTML = `
-        <div class="card h-100">
-          <div class="card-body d-flex flex-column justify-content-between">
-            <div>
-              <p class="card-text">${t.texto}</p>
-              <small class="text-muted">Estado: ${t.estado} · Creada: ${new Date(t.creado).toLocaleString()} · Mod.: ${new Date(t.modificado).toLocaleString()}</small>
-            </div>
-            <div class="btn-group mt-3">
-              <button class="btn btn-sm btn-outline-primary" data-id="${t.id}" data-accion="editar"><i class="bi bi-pencil"></i></button>
-              <button class="btn btn-sm btn-outline-success" data-id="${t.id}" data-accion="estado"><i class="bi bi-arrow-repeat"></i></button>
-              <button class="btn btn-sm btn-outline-danger" data-id="${t.id}" data-accion="eliminar"><i class="bi bi-trash"></i></button>
-            </div>
-          </div>
-        </div>
-        `;
-        listaTareas.appendChild(tareaDiv);
-    });
-};
-
-
-document.addEventListener("click", e => {
-    const btn = e.target.closest("button");
-    if (!btn) return;
-    const id = btn.dataset.id;
-    const accion = btn.dataset.accion;
-    if (accion === "eliminar") eliminarTarea(id);
-    if (accion === "editar") {
-        const tarea = tareas.find(t => t.id === id);
-        const nuevoTexto = prompt("Editar tarea:", tarea.texto);
-        if (nuevoTexto) actualizarTarea(id, { texto: nuevoTexto });
-    }
-    if (accion === "estado") {
-        const tarea = tareas.find(t => t.id === id);
-        const estados = ["creada", "en proceso", "terminada"];
-        const idx = (estados.indexOf(tarea.estado) + 1) % estados.length;
-        actualizarTarea(id, { estado: estados[idx] });
-    }
-});
+    idTareaEnEdicion = tarea.id;
+    modalVer.show();
+}
 
 btnAgregar.addEventListener("click", () => {
-    const texto = inputTarea.value.trim();
-    if (!texto) return;
-    crearTarea(texto);
-    inputTarea.value = '';
+    idTareaEnEdicion = null;
+    editarTitulo.value = "";
+    editarContenido.value = "";
+    editarEstado.value = "Creada";
 });
 
-filtroEstado.addEventListener("change", renderizarTareas);
+btnGuardarEdicion.addEventListener("click", () => {
+    const titulo = editarTitulo.value.trim();
+    const contenido = editarContenido.value.trim();
+    const estado = editarEstado.value;
 
-cargarTareas();
+    if (!titulo) {
+        alert("El título no puede estar vacío");
+        return;
+    }
+
+    if (idTareaEnEdicion) {
+        const tarea = tareas.find(t => t.id === idTareaEnEdicion);
+        if (!tarea) return;
+        tarea.titulo = titulo;
+        tarea.contenido = contenido;
+        tarea.estado = estado;
+        tarea.modificado = new Date().toISOString();
+    } else {
+        const nuevaTarea = new Tarea(titulo, contenido);
+        nuevaTarea.estado = estado;
+        tareas.push(nuevaTarea);
+    }
+
+    guardarTareas();
+    renderizarTareas();
+    modalEditar.hide();
+    idTareaEnEdicion = null;
+});
+
+document.getElementById("modalEditarTarea").addEventListener("hidden.bs.modal", () => {
+    if (!idTareaEnEdicion) {
+        editarTitulo.value = "";
+        editarContenido.value = "";
+        editarEstado.value = "Creada";
+    }
+});
+
+btnEditarDesdeVer.addEventListener("click", () => {
+    const tarea = tareas.find(t => t.id === idTareaEnEdicion);
+    if (!tarea) return;
+
+    editarTitulo.value = tarea.titulo;
+    editarContenido.value = tarea.contenido;
+    editarEstado.value = tarea.estado;
+
+    modalVer.hide();
+    modalEditar.show();
+});
+
+listaTareas.addEventListener("click", e => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+
+    const accion = btn.dataset.accion;
+    const id = btn.dataset.id;
+    if (!accion || !id) return;
+
+    if (accion === "ver") mostrarTarea(id);
+    else if (accion === "eliminar") eliminarTarea(id);
+    else if (accion === "estado") cambiarEstado(id);
+});
+
+if (inputFiltroEstado) {
+    inputFiltroEstado.addEventListener("change", renderizarTareas);
+}
+
 renderizarTareas();
